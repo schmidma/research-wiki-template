@@ -1,0 +1,17 @@
+# Obsidian local state
+/.obsidian/
+/.trash/
+
+# Source PDFs belong in Zotero, not in the vault
+*.[pP][dD][fF]
+
+# Local package installations
+node_modules/
+/.pi/npm/
+
+# OS and editor state
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo

@@ -1,0 +1,17 @@
+{
+  "name": "research-wiki",
+  "license": "MIT",
+  "private": true,
+  "researchWiki": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tools/wiki/*.test.js"
+  },
+  "dependencies": {
+    "mdast-util-from-markdown": "^2.0.3",
+    "yaml": "^2.9.1"
+  }
+}

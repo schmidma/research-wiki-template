@@ -1,0 +1,110 @@
+# Research wiki
+
+A starter workspace for agent-assisted research using ordinary Markdown, Obsidian, Zotero, and Git. Use it to connect sources and observations to projects, concepts, focused analyses, and broader syntheses.
+
+The agent is a research collaborator, not an automatic note collector. Discussion need not produce files, and a plausible interpretation is not an established result. The operating rules in [AGENTS.md](AGENTS.md) make those distinctions explicit.
+
+## Start your own workspace
+
+1. On GitHub, choose **Use this template** and create a **private repository** for your research. Clone your new repository, not the public template.
+2. Read [AGENTS.md](AGENTS.md) before starting an agent. In particular, it authorizes automatic commits and pushes to your workspace's configured upstream after completed, checked tasks. Confirm that the remote is your intended private backup; adapt the instructions before use if that policy does not suit you.
+3. Open the cloned repository root as an existing vault in Obsidian, or browse it in a Markdown editor. No build is required to read or edit the pages.
+4. For validation, install Node.js 22 or newer and run these commands from the repository root:
+
+   ```sh
+   npm ci
+   node tools/wiki/check.js --strict
+   npm test
+   ```
+
+5. Explore the [example project](entities/example-project.md), then replace the examples with your own material. All six example pages are explicitly fictional; they are not research evidence. Remove or update their links together. An empty vault fails validation, and a lone page produces an isolation warning.
+
+Automatic Git backup also requires a configured author name and email, credentials with write access to your private repository, and an upstream tracking branch. Check the destination with `git remote -v` and tracking with `git branch -vv`; confirm repository visibility on GitHub before the first agent task.
+
+The repository's directory name and npm package name are yours to choose. Keep `"researchWiki": true` in `package.json` so the checker can discover the vault. Keep `"private": true` to prevent accidental npm publication; it does **not** make a Git repository private.
+
+## How the pages fit together
+
+| Directory | Purpose | Example |
+| --- | --- | --- |
+| `sources/` | Source-specific evidence, interpretations, and personal observations | [Changing-temperature observation](sources/example-temperature-observation.md), [fixed-temperature observation](sources/example-fixed-temperature-observation.md) |
+| `entities/` | Named projects, people, organizations, systems, and tools | [Sensor comparison project](entities/example-project.md) |
+| `concepts/` | Ideas and working definitions that recur across pages | [Sensor drift](concepts/example-concept.md) |
+| `analyses/` | Reasoned answers to focused questions | [What explains the changing difference?](analyses/example-analysis.md) |
+| `syntheses/` | Interpretations integrating multiple sources or projects | [What the observations jointly support](syntheses/example-synthesis.md) |
+
+The example follows an observation through competing explanations to a proposed experiment. It keeps the proposal separate from the invented observations and avoids presenting a causal conclusion as established.
+
+Each canonical page has YAML frontmatter:
+
+```yaml
+---
+title: A unique descriptive title
+type: source
+provenance: personal
+---
+```
+
+Use `source`, `entity`, `concept`, `analysis`, or `synthesis` to match the directory. Source pages additionally require `provenance: personal` or `provenance: zotero`. Other useful metadata is allowed. Titles must be unique after trimming whitespace and ignoring case.
+
+Internal links use vault-root Markdown paths, such as `[Example concept](/concepts/example-concept.md)`. These links are intended for the local vault, not a GitHub-hosted website. Use `$...$` for inline math and `$$...$$` for display math.
+
+When creating links in Obsidian, disable **Use [[Wikilinks]]** under **Settings > Files and links** to generate Markdown links. Inspect generated destinations and adjust them to the vault-root form above, including the leading `/` and `.md` extension; disabling wikilinks alone does not guarantee that path format. On each device, check a cross-folder link by opening its target and checking the backlink, then run the strict checker. Link validation does not test Obsidian navigation. See [Obsidian's link documentation](https://help.obsidian.md/links).
+
+## Work with an agent
+
+Start a file-and-shell agent in the vault root and ensure it loads `AGENTS.md`. If your tool does not discover that file automatically, ask it to read the file first. No particular agent provider or subscription is required by the repository.
+
+A first conversation might begin:
+
+> Read AGENTS.md. Help me clarify the question behind my current project. Distinguish what I remember, what the available sources support, and what remains uncertain. Discuss what is worth preserving before writing a project page. Do not treat the example pages as evidence about my work.
+
+Give the agent access only to material you are permitted to share with its provider. Web search, PDF retrieval and extraction, and subagents depend on your agent environment; this template does not install or configure them. There is no bundled search index, vector database, or generated registry. Ordinary filesystem search is sufficient to get started.
+
+## Bibliography and PDFs
+
+The supplied workflow uses **Zotero** for bibliographic records, PDFs, annotations, and citation keys. The wiki holds interpretation and connections between sources. You do not need Zotero to explore the fictional examples, but identify real bibliographic sources in Zotero before creating their wiki pages under these instructions.
+
+Use source pages with `provenance: zotero` and preserve the real item's identifiers and useful metadata. Do not invent keys or copy someone else's library identifiers. The example vault intentionally contains no fake Zotero records. PDFs stay in Zotero, not in this repository.
+
+### Optional agent access through zotgo
+
+[zotgo](https://github.com/heibench/zotgo) supplies the `zot` CLI for a running Zotero desktop application. It is not installed by `npm ci`.
+
+1. Install a binary for your platform from the [v0.12.0 release](https://github.com/heibench/zotgo/releases/tag/v0.12.0), verify it against the release checksums, and place `zot` on your `PATH`.
+2. Keep Zotero 7 or newer running. In its advanced settings, enable **Allow other applications on this computer to communicate with Zotero**. See the [Zotero Local API documentation](https://www.zotero.org/support/dev/web_api/v3/local_api).
+3. Run `zot doctor` to check the local endpoint and its capabilities, then `zot --help` for available commands. Local reading does not require a Web API key or a separate Zotero plugin.
+4. Tell your agent to use `zot` for Zotero access, inspect command help before use, and prefer `zot --json ...` for structured output. The default workflow uses your personal library, not group libraries.
+
+Reading and writing are separate capabilities. Writes need a Zotero build with a supported local write API and explicit authorization; non-interactive writes also require a human-granted lease. Follow the [zotgo writing guide](https://github.com/heibench/zotgo/blob/v0.12.0/docs/writing.md) only when you intend to enable them. A technical permission or lease does not replace the explicit user request required by `AGENTS.md`.
+
+## Optional Obsidian title display
+
+Obsidian works without community plugins. To display frontmatter titles rather than filenames in the file explorer and graph:
+
+1. In **Settings > Community plugins > Browse**, install and enable [Front Matter Title](https://github.com/snezhig/obsidian-front-matter-title).
+2. Leave **Common main template** set to `title`.
+3. Enable **Explorer** and **Graph**. Other features are not required for this setup.
+
+The original setup uses plugin 4.1.1, which requires Obsidian 1.12.0 or newer. Consult the plugin's compatibility information when installing another version. These display features do not rename files or rewrite links.
+
+`.obsidian/` is ignored by Git, so each device needs its own preferences and plugin setup. Workspace history and installed plugin code are not part of the template.
+
+## Check the wiki
+
+```sh
+node tools/wiki/check.js          # errors fail; warnings are allowed
+node tools/wiki/check.js --strict # warnings also fail
+node tools/wiki/check.js --json   # structured diagnostics
+node tools/wiki/check.js --help
+```
+
+The checker validates frontmatter, directory/type consistency, unique titles, local Markdown targets, and repository containment. It warns about isolated pages, legacy wikilinks, relative links, and non-Obsidian math delimiters. It does not check scientific claims, external URLs, heading fragments, or attachment existence, and it never changes pages.
+
+Root discovery walks the working directory's ancestors to the nearest `package.json` with `"researchWiki": true`. From a subdirectory, invoke the script using the appropriate relative or absolute path. `--root PATH` bypasses discovery and resolves relative to the working directory. Exit codes are 0 for success, 1 for validation failure, and 2 for usage or operational failure; strict mode treats warnings as validation failure.
+
+Git backs up only tracked files. Zotero data, PDFs, installed dependencies, and local Obsidian state need their own backup arrangements. Never commit credentials or publish the research vault merely to share this setup.
+
+## License
+
+The template's code, instructions, documentation, and examples are available under the [MIT License](LICENSE). This does not require you to publish your own research notes. Third-party dependencies retain their own licenses.
