@@ -23,7 +23,7 @@ These explanations are not necessarily mutually exclusive.
 
 ## Proposed next comparison
 
-After a consistent warm-up period, compare fixed-temperature sessions with sessions that vary temperature in a repeated, counterbalanced sequence. Keep placement and acquisition settings consistent and check reference stability independently. Record the difference and temperature throughout each session.
+After a consistent warm-up period, compare fixed-temperature sessions with sessions that vary temperature in a repeated, counterbalanced sequence. Keep placement and acquisition settings consistent and check reference stability independently. Record the difference and temperature throughout each session. This comparison tests behavior after warm-up; it does not test whether startup effects explain the first pilot.
 
 Before collecting data, specify measurement uncertainty and a difference large enough to matter for the intended use. Repeated sessions would help assess reproducibility.
 

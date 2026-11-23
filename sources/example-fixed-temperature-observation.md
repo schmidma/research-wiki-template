@@ -14,6 +14,6 @@ In this invented follow-up, I repeated the sensor comparison in a temperature-co
 
 ## Interpretation and uncertainty
 
-This weakens the claim that elapsed time alone explains the first observation. It does not establish temperature as the cause: enclosure conditions and warm-up also changed, and the observation is qualitative. A failure to notice a change is not evidence that the difference was exactly constant.
+The increasing difference was not observed under the changed conditions. Comparable observation durations have not been established, so this does not rule out an elapsed-time effect. It does not establish temperature as the cause: enclosure conditions and warm-up also changed, and the observation is qualitative. A failure to notice a change is not evidence that the difference was exactly constant.
 
 The [analysis](/analyses/example-analysis.md) uses this limitation to motivate a controlled comparison rather than declaring the problem solved.
