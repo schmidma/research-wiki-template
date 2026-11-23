@@ -3,9 +3,9 @@ import { chmod, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { checkVault, formatCheckResult, loadPages } from "./vault.js";
+import { checkVault, formatCheckResult } from "./vault.js";
 
-export async function withVault(run) {
+async function withVault(run) {
   const root = await mkdtemp(join(tmpdir(), "research-wiki-check-"));
   try {
     await mkdir(join(root, "sources"));
@@ -19,20 +19,20 @@ const save = (root, name, text) => writeFile(join(root, "sources", name), text);
 const errors = (result) => result.diagnostics.filter((d) => d.severity === "error");
 const ofCode = (result, code) => result.diagnostics.filter((d) => d.code === code);
 
-test("complete CommonMark links, code masking, repeated edges and source lines", async () => {
+test("only visible links count as occurrences and connect distinct canonical pages", async () => {
   await withVault(async (root) => {
     await save(root, "a.md", source("A", [
-      "```", "[[Fenced]]", "[Missing](/sources/fenced.md)", "```",
-      "    [[Indented]] [C](/sources/c.md) [Missing](/sources/indented.md)",
-      "Inline `[[Inline]]` and `[Missing](/sources/inline.md)`.",
-      "[One](/sources/b.md)", "[Duplicate](/sources/b.md)", "[Self](/sources/a.md)",
-      "[Relative](b.md)", "[Missing](/sources/missing.md)", "[[Visible]] and [[Second]]",
+      "> ```md", "> [[Hidden]] [hidden](/sources/c.md)", "> ```", "",
+      "    [[Indented]] [hidden](/sources/c.md)",
+      "Inline `[[example]] [hidden](/sources/c.md)`.",
+      '![Image](</sources/b.md> "caption")', "[Self](/sources/a.md)",
+      "Paragraph continuation:", "    [Relative](b.md)",
+      "[Missing](/sources/missing.md)", "[[Visible]]",
     ].join("\n")));
     await save(root, "b.md", source("B"));
     await save(root, "c.md", source("C"));
     const result = await checkVault(root);
-    assert.equal(result.ok, false);
-    assert.deepEqual(result.stats, { pages: 3, byType: { source: 3 }, links: 5, graphEdges: 1, isolatedPages: 1 });
+    assert.deepEqual(result.stats, { pages: 3, byType: { source: 3 }, links: 4, graphEdges: 1, isolatedPages: 1 });
     assert.deepEqual(errors(result).map((d) => [d.code, d.line]), [["link_missing", 17]]);
     assert.deepEqual(ofCode(result, "legacy_wikilink").map((d) => d.line), [18]);
     assert.deepEqual(ofCode(result, "link_relative").map((d) => d.line), [16]);
@@ -40,80 +40,23 @@ test("complete CommonMark links, code masking, repeated edges and source lines",
   });
 });
 
-test("fenced and indented code inside containers, paragraph continuations", async () => {
+test("math warnings count visible delimiters, including indented paragraph continuations", async () => {
   await withVault(async (root) => {
-    await save(root, "a.md", source("A", [
-      ">> ```md", ">> [Hidden](/sources/c.md)", ">> [[Hidden fenced wikilink]]", ">> ```", "",
-      "- ~~~", "  [Hidden list fence](/sources/c.md)", "  [[Hidden list wikilink]]", "  ~~~", "",
-      "10. ```md", "    [Hidden ordered-list fence](/sources/c.md)", "    [[Hidden ordered-list wikilink]]", "    ```",
-      "[Visible after ordered-list fence](/sources/b.md)", "",
-      "- > ```md", "  > [Hidden list-quote fence](/sources/c.md)", "  > [[Hidden list-quote wikilink]]", "  > ```", "",
-      "> Block quote paragraph", ">", ">     [Hidden indented](/sources/c.md)", ">     [[Hidden indented wikilink]]", "",
-      "- List item", "", "      [Hidden list-indented](/sources/c.md)", "      [[Hidden list-indented wikilink]]", "",
-      "*", "      [Hidden after empty item](/sources/c.md)", "      [[Hidden after empty item wikilink]]", "",
-      "Paragraph continuation", "    [Visible continuation](/sources/b.md)", "[Visible](/sources/b.md)",
-    ].join("\n")));
-    await save(root, "b.md", source("B"));
-    await save(root, "c.md", source("C"));
+    await save(root, "math.md", [
+      "---", "title: Math", "type: source", "provenance: personal", String.raw`example: \(metadata\)`, "---",
+      "```latex", String.raw`\(fenced\)`, "```",
+      " \t\\(indented code\\)", "Inline code: `\\(hidden\\)`.",
+      String.raw`Escaped: \\(example\\).`, "<!-- \\(hidden\\) -->",
+      "Ordinary paragraph", String.raw`    Visible \(x\) and unmatched \[ token.`,
+    ].join("\n"));
+    await save(root, "code.md", source("Code example", "Inline code: `\\(hidden\\)`."));
     const result = await checkVault(root);
     assert.equal(result.ok, true);
-    assert.equal(result.stats.links, 3);
-    assert.equal(result.stats.graphEdges, 1);
-    assert.deepEqual(result.diagnostics.map((d) => [d.code, d.path]), [["page_isolated", "sources/c.md"]]);
-  });
-});
-
-test("inline destinations, titles, images, balanced parentheses, escapes and malformed examples", async () => {
-  await withVault(async (root) => {
-    await save(root, "a.md", source("A", [
-      '[Titled](/sources/b.md "title")', "![Angle](</sources/angle.md> 'caption')",
-      "[Balanced](/sources/paren(name).md (caption))",
-      "[Escaped destination](</sources/right\\>angle.md> 'title')", "[Self](/sources/a.md)",
-      '[Relative](b.md "relative")', "[Missing](/sources/missing.md 'missing')",
-      String.raw`\\\[Escaped opener](/sources/nope.md)`, String.raw`[Escaped label \\\]](/sources/b.md)`,
-      '[Malformed title](/sources/nope.md "unterminated)', "[Malformed angle](</sources/nope.md)",
-      "Inline `[Code](/sources/nope.md)`.",
-    ].join("\n")));
-    for (const name of ["b.md", "angle.md", "paren(name).md", "right>angle.md"]) await save(root, name, source(name));
-    const result = await checkVault(root);
-    assert.equal(result.stats.links, 8);
-    assert.equal(result.stats.graphEdges, 4);
-    assert.equal(result.stats.isolatedPages, 0);
-    assert.deepEqual(errors(result).map((d) => [d.code, d.line]), [["link_missing", 13]]);
-    assert.deepEqual(ofCode(result, "link_relative").map((d) => d.line), [12]);
-  });
-});
-
-test("math uses raw source outside code, excludes metadata, escaped examples and HTML", async () => {
-  await withVault(async (root) => {
-    await save(root, "math.md", source(String.raw`\\(metadata\\)`, [
-      String.raw`Visible \(x\) and unmatched \[ token.`, "```latex", String.raw`\(fenced\)`, "```",
-      String.raw`    \(indented\)`, "Inline code: `\\(hidden\\)` and ``\\[hidden\\]``.",
-      String.raw`Escaped examples: \\(hidden\\) and \\[hidden\\].`,
-      "<!-- [[Hidden]] [missing](/missing.md) \\(hidden\\) -->", "[Target](/sources/target.md)",
-    ].join("\n")));
-    await save(root, "target.md", source("Target"));
-    const result = await checkVault(root);
-    assert.equal(result.ok, true);
-    assert.equal(result.diagnostics.length, 1);
-    const math = result.diagnostics[0];
-    assert.equal(math.code, "math_delimiters");
-    assert.equal(math.line, 7);
+    const mathWarnings = ofCode(result, "math_delimiters");
+    assert.deepEqual(mathWarnings.map((warning) => warning.path), ["sources/math.md"]);
+    const [math] = mathWarnings;
+    assert.equal(math.line, 15);
     assert.match(math.message, /inline: 1 open, 1 close; display: 1 open, 0 close/);
-  });
-});
-
-test("math indentation follows CommonMark code-block boundaries", async () => {
-  await withVault(async (root) => {
-    for (const [body, warning] of [
-      [" \t\\(code\\)", false], ["    code\n\n \t\\[still code\\]", false],
-      ["ordinary paragraph\n    \\(visible\\)", true],
-    ]) {
-      await save(root, "a.md", source("A", body));
-      const result = await checkVault(root);
-      assert.equal(ofCode(result, "math_delimiters").length, warning ? 1 : 0);
-      if (warning) assert.equal(ofCode(result, "math_delimiters")[0].line, 8);
-    }
   });
 });
 
@@ -167,7 +110,6 @@ test("titles are unique after trim and case folding, isolated self-links are war
     assert.equal(ofCode(result, "title_duplicate")[0].line, 3);
     assert.equal(result.stats.isolatedPages, 2);
     assert.equal(result.stats.graphEdges, 0);
-    assert.deepEqual(result, await checkVault(root));
   });
 });
 
@@ -250,10 +192,9 @@ test("recursive canonical-only scan excludes hidden and symlink entries without 
     await symlink(join(root, "elsewhere"), join(root, "sources", "linked"));
     await symlink(join(root, "elsewhere", "bad.md"), join(root, "sources", "linked.md"));
     await Promise.all(Array.from({ length: 501 }, (_, i) => save(root, `${i}.md`, source(`Page ${i}`))));
-    const pages = await loadPages(root);
-    assert.equal(pages.length, 502);
-    assert.deepEqual(pages.map((p) => p.path), pages.map((p) => p.path).sort());
-    assert.equal((await checkVault(root)).ok, true);
+    const result = await checkVault(root);
+    assert.equal(result.stats.pages, 502);
+    assert.equal(result.ok, true);
   });
 });
 

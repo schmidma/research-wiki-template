@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test tools/wiki/*.test.js"
+    "test": "node --test *.test.js"
   },
   "dependencies": {
     "mdast-util-from-markdown": "^2.0.3",

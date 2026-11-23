@@ -72,7 +72,7 @@ Treat the thesis-level synthesis as a future and revisable outcome rather than a
 - In wiki Markdown, delimit inline math with `$...$` and display math with `$$...$$` so Obsidian renders it. Do not use the parenthesized or bracketed LaTeX delimiter forms in files.
 - Use vault-root Markdown links such as `[Example concept](/concepts/example-concept.md)` for internal relationships. Do not create relative filesystem links that escape the repository.
 - Mention external repository paths as code. When an external artifact belongs in the knowledge graph, link to a vault-native page representing it. Ordinary web URLs remain acceptable.
-- Use ordinary filesystem search for on-demand lexical discovery and `node tools/wiki/check.js` to verify metadata and links (Node.js >=22; install dependencies with `npm ci`). Use ordinary file tools for page creation and editing. When preserving a personal thought, recollection, interpretation, or hypothesis as a dated source record, use `provenance: personal` and explicitly label uncertainty. Follow the capture judgment above; do not link, categorize, or promote observations automatically.
+- Use ordinary filesystem search for on-demand lexical discovery and `node .tools/check.js` to verify metadata and links (Node.js >=22; install dependencies with `npm --prefix .tools ci`). Use ordinary file tools for page creation and editing. When preserving a personal thought, recollection, interpretation, or hypothesis as a dated source record, use `provenance: personal` and explicitly label uncertainty. Follow the capture judgment above; do not link, categorize, or promote observations automatically.
 - Do not introduce generated registries, indexes, event journals, embeddings, capture packets, or other persistent machinery until a concrete recurring workflow justifies it.
 
 ## Git and private backup synchronization
@@ -81,7 +81,7 @@ This repository is maintained solely by the researcher. Its configured private G
 
 After a self-contained research, curation, or operational task produces intentional tracked changes and the relevant checks pass:
 
-- run `node tools/wiki/check.js` when canonical pages or links changed;
+- run `node .tools/check.js` when canonical pages or links changed;
 - create a coherent local commit containing only the pages, tools, or operating rules belonging to that task;
 - use a factual, action-oriented commit subject;
 - push the current branch to its configured upstream through an ordinary fast-forward update; and

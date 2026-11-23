@@ -6,22 +6,22 @@ The agent is a research collaborator, not an automatic note collector. Discussio
 
 ## Start your own workspace
 
-1. On GitHub, choose **Use this template** and create a **private repository** for your research. Clone your new repository, not the public template.
+1. On GitHub, choose **Use this template** and create a **private repository** for your research. Clone your new repository, not the template.
 2. Read [AGENTS.md](AGENTS.md) before starting an agent. In particular, it authorizes automatic commits and pushes to your workspace's configured upstream after completed, checked tasks. Confirm that the remote is your intended private backup; adapt the instructions before use if that policy does not suit you.
 3. Open the cloned repository root as an existing vault in Obsidian, or browse it in a Markdown editor. No build is required to read or edit the pages.
 4. For validation, install Node.js 22 or newer and run these commands from the repository root:
 
    ```sh
-   npm ci
-   node tools/wiki/check.js --strict
-   npm test
+   npm --prefix .tools ci
+   node .tools/check.js --strict
+   npm --prefix .tools test
    ```
 
-5. Explore the [example project](entities/example-project.md), then replace the examples with your own material. All six example pages are explicitly fictional; they are not research evidence. Remove or update their links together. An empty vault fails validation, and a lone page produces an isolation warning.
+5. Explore the [example project](entities/example-project.md), then follow [Replace the examples](#replace-the-examples) to start your own research record. All six example pages are explicitly fictional; they are not research evidence.
 
 Automatic Git backup also requires a configured author name and email, credentials with write access to your private repository, and an upstream tracking branch. Check the destination with `git remote -v` and tracking with `git branch -vv`; confirm repository visibility on GitHub before the first agent task.
 
-The repository's directory name and npm package name are yours to choose. Keep `"researchWiki": true` in `package.json` so the checker can discover the vault. Keep `"private": true` to prevent accidental npm publication; it does **not** make a Git repository private.
+The repository's directory name and npm package name are yours to choose. Keep `"researchWiki": true` in `.tools/package.json` so the checker can discover the vault. Keep `"private": true` to prevent accidental npm publication; it does **not** make a Git repository private.
 
 ## How the pages fit together
 
@@ -49,7 +49,18 @@ Use `source`, `entity`, `concept`, `analysis`, or `synthesis` to match the direc
 
 Internal links use vault-root Markdown paths, such as `[Example concept](/concepts/example-concept.md)`. These links are intended for the local vault, not a GitHub-hosted website. Use `$...$` for inline math and `$$...$$` for display math.
 
-When creating links in Obsidian, disable **Use [[Wikilinks]]** under **Settings > Files and links** to generate Markdown links. Inspect generated destinations and adjust them to the vault-root form above, including the leading `/` and `.md` extension; disabling wikilinks alone does not guarantee that path format. On each device, check a cross-folder link by opening its target and checking the backlink, then run the strict checker. Link validation does not test Obsidian navigation. See [Obsidian's link documentation](https://help.obsidian.md/links).
+When creating links in Obsidian, disable **Use [[Wikilinks]]** under **Settings > Files and links** to generate Markdown links. Inspect generated destinations and adjust them to the vault-root form above, including the leading `/` and `.md` extension; disabling wikilinks alone does not guarantee that path format. On each device, check a cross-folder link by opening its target and checking the backlink, then run `node .tools/check.js`. Link validation does not test Obsidian navigation. See [Obsidian's link documentation](https://help.obsidian.md/links).
+
+## Replace the examples
+
+Start with what you actually know, not with a requirement to fill every directory:
+
+1. Create a real observation in `sources/` using the minimal frontmatter above and `provenance: personal`. Record the observation, recollection, or question and distinguish it from your interpretation. You do not need a polished project narrative to begin.
+2. If the observation has a genuine relationship to a project or concept, create or update that page and link them. Otherwise, leave it unconnected for now. Do not invent relationships to make a check pass.
+3. Remove the six fictional pages linked in the example table once you no longer need them. Remove or replace the example links in this README as well, including the setup link and the table's example column. Keep any real pages you have added; do not delete whole directories as a shortcut.
+4. Run `node .tools/check.js` without `--strict` for normal research work. A lone observation is valid but produces an isolation warning. Review warnings as curation prompts, not an obligation to expand the wiki. An entirely empty vault fails validation.
+
+Strict mode is useful for keeping the shipped example coherent; it is not a minimum standard of research maturity.
 
 ## Work with an agent
 
@@ -67,9 +78,36 @@ The supplied workflow uses **Zotero** for bibliographic records, PDFs, annotatio
 
 Use source pages with `provenance: zotero` and preserve the real item's identifiers and useful metadata. Do not invent keys or copy someone else's library identifiers. The example vault intentionally contains no fake Zotero records. PDFs stay in Zotero, not in this repository.
 
+### A bibliographic source page
+
+After identifying the canonical item in your own Zotero library, a source page can look like this. Replace the placeholders with verified metadata; do not save them as if they were real identifiers. Omit `citation_key` if the item has no citation key.
+
+```markdown
+---
+title: "REPLACE_WITH_A_UNIQUE_SOURCE_TITLE"
+type: source
+provenance: zotero
+zotero_item_key: "REPLACE_WITH_YOUR_VERIFIED_ITEM_KEY"
+zotero_uri: "REPLACE_WITH_YOUR_VERIFIED_ITEM_URI"
+citation_key: "REPLACE_WITH_YOUR_EXISTING_CITATION_KEY"
+---
+
+## Source claim
+
+Summarize the relevant claim and identify its page or passage in the source.
+
+## Interpretation and relevance
+
+Separate your inference from the source's claim. Note limitations and explain
+which research question it informs. Link to an existing project or analysis
+when there is a genuine relationship.
+```
+
+Only `title`, `type`, and `provenance` are required by the checker for a source page. The pointer fields above are suggested metadata, not an enforced schema; preserve useful existing metadata rather than renaming it to match the example. The checker does not verify Zotero identifiers or citations.
+
 ### Optional agent access through zotgo
 
-[zotgo](https://github.com/heibench/zotgo) supplies the `zot` CLI for a running Zotero desktop application. It is not installed by `npm ci`.
+[zotgo](https://github.com/heibench/zotgo) supplies the `zot` CLI for a running Zotero desktop application. It is not installed by `npm --prefix .tools ci`.
 
 1. Install a binary for your platform from the [v0.12.0 release](https://github.com/heibench/zotgo/releases/tag/v0.12.0), verify it against the release checksums, and place `zot` on your `PATH`.
 2. Keep Zotero 7 or newer running. In its advanced settings, enable **Allow other applications on this computer to communicate with Zotero**. See the [Zotero Local API documentation](https://www.zotero.org/support/dev/web_api/v3/local_api).
@@ -93,17 +131,23 @@ The original setup uses plugin 4.1.1, which requires Obsidian 1.12.0 or newer. C
 ## Check the wiki
 
 ```sh
-node tools/wiki/check.js          # errors fail; warnings are allowed
-node tools/wiki/check.js --strict # warnings also fail
-node tools/wiki/check.js --json   # structured diagnostics
-node tools/wiki/check.js --help
+node .tools/check.js          # errors fail; warnings are allowed
+node .tools/check.js --strict # warnings also fail
+node .tools/check.js --json   # structured diagnostics
+node .tools/check.js --help
 ```
 
 The checker validates frontmatter, directory/type consistency, unique titles, local Markdown targets, and repository containment. It warns about isolated pages, legacy wikilinks, relative links, and non-Obsidian math delimiters. It does not check scientific claims, external URLs, heading fragments, or attachment existence, and it never changes pages.
 
-Root discovery walks the working directory's ancestors to the nearest `package.json` with `"researchWiki": true`. From a subdirectory, invoke the script using the appropriate relative or absolute path. `--root PATH` bypasses discovery and resolves relative to the working directory. Exit codes are 0 for success, 1 for validation failure, and 2 for usage or operational failure; strict mode treats warnings as validation failure.
+Root discovery walks the working directory's ancestors to the nearest `.tools/package.json` with `"researchWiki": true`. From a subdirectory, invoke the script using the appropriate relative or absolute path. `--root PATH` bypasses discovery and resolves relative to the working directory. Exit codes are 0 for success, 1 for validation failure, and 2 for usage or operational failure; strict mode treats warnings as validation failure.
 
 Git backs up only tracked files. Zotero data, PDFs, installed dependencies, and local Obsidian state need their own backup arrangements. Never commit credentials or publish the research vault merely to share this setup.
+
+## Later improvements
+
+Creating a repository from this template gives you a starting snapshot, not automatic updates. Your research pages and customized operating rules remain yours to maintain.
+
+When adopting a later improvement, inspect the relevant template changes and port only what you need. Keep package identity, personal policies, and research content intact; do not replace your whole vault or `AGENTS.md`. To suggest improvements to the template, see [Contributing](CONTRIBUTING.md).
 
 ## License
 

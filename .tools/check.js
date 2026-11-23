@@ -2,15 +2,15 @@
 import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
-const USAGE = `Usage: node tools/wiki/check.js [--root PATH] [--json] [--strict] [--help]
+const USAGE = `Usage: node .tools/check.js [--root PATH] [--json] [--strict] [--help]
 
-Read-only wiki validation. Requires Node.js >=22 and npm ci.
+Read-only wiki validation. Requires Node.js >=22 and npm --prefix .tools ci.
   --root PATH  Use PATH (relative to cwd), instead of discovering the vault.
   --json       Print structured JSON only.
   --strict     Exit 1 for warnings as well as validation errors.
   --help       Show this help.
 
-Discovery walks cwd ancestors for a package.json with "researchWiki": true.
+Discovery walks cwd ancestors for .tools/package.json with "researchWiki": true.
 Exit: 0 valid, 1 validation errors (or strict warnings), 2 usage/operational failure.`;
 
 function parseArguments(args) {
@@ -34,7 +34,7 @@ async function discoverRoot() {
   for (;;) {
     let contents;
     try {
-      contents = await readFile(join(directory, "package.json"), "utf8");
+      contents = await readFile(join(directory, ".tools", "package.json"), "utf8");
     } catch (error) {
       if (!["ENOENT", "ENOTDIR"].includes(error.code)) throw error;
     }
@@ -44,7 +44,7 @@ async function discoverRoot() {
       if (marker?.researchWiki === true) return directory;
     }
     const parent = dirname(directory);
-    if (directory === parent) throw new Error("No vault found: run inside a vault with \"researchWiki\": true in package.json, or supply --root PATH.");
+    if (directory === parent) throw new Error("No vault found: run inside a vault with \"researchWiki\": true in .tools/package.json, or supply --root PATH.");
     directory = parent;
   }
 }
