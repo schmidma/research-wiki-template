@@ -40,7 +40,7 @@ For example:
 - "How does this relate to my earlier notes about drift?"
 - "Here's how I now understand the distinction. Save that interpretation and link it to the paper and project."
 
-For agent access to Zotero, I use [zotgo](https://github.com/heibench/zotgo). Its documentation covers setup; the agent can inspect the available commands when needed. Obsidian opens the wiki directly as a vault. The optional [Front Matter Title](https://github.com/snezhig/obsidian-front-matter-title) plugin displays the titles from your notes instead of their filenames.
+For agent access to Zotero, I use [zotgo](https://github.com/heibench/zotgo) together with the included [Zotero](.agents/skills/zotero/SKILL.md) and [Zotero Import](.agents/skills/zotero-import/SKILL.md) skills. They cover library operations and the workflow for importing papers and reports; zotgo's documentation covers installation. Obsidian opens the wiki directly as a vault. The optional [Front Matter Title](https://github.com/snezhig/obsidian-front-matter-title) plugin displays the titles from your notes instead of their filenames.
 
 ## How the pages fit together
 
