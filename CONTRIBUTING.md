@@ -24,4 +24,4 @@ research material, credentials, or personal library identifiers.
 
 For checker changes, include a small test when it helps protect the affected
 behavior. For documentation and example changes, check that the instructions
-and links work. See the [README](README.md) for setup and validation commands.
+and links work. See the [README](README.md) for getting started.
